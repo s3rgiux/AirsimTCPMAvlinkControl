@@ -9,6 +9,16 @@ import pymavlink.dialects.v20.all as dialect
 import keyboard
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+from madgwickahrs import MadgwickAHRS
+import numpy as np
+import math
+
+# Create an AHRS filter instance
+ahrs = MadgwickAHRS()
+
+gyro_data_ahrs = np.array([0.1, -0.2, 0.3])  # Angular velocities (rad/s)
+accel_data_ahrs = np.array([0.0, 0.0, 9.81])  # Linear accelerations (m/s^2)
+mag_data_ahrs = np.array([0.4, 0.0, 0.6])     # Magnetometer data (uT)
 
 # Start a connection listening to a UDP port
 connection = mavutil.mavlink_connection('tcp:127.0.0.1:4560', source_system=1, source_component=1) # conn udp_bridge
@@ -31,6 +41,12 @@ m0 = 0
 m1 = 0
 m2 = 0
 m3 = 0
+
+
+data_file_ahrs = 'ahrs_data.txt'
+with open(data_file_ahrs, 'w') as file:
+    pass
+
 # Define a function to increase the variable
 def increase_thr():
     global throttle_ctrl
@@ -189,6 +205,8 @@ def thread_rx_mavproxy():
     global is_running
     global imu_a
     global gps_a
+    global ahrs
+    global data_file_ahrs
     try:
         while(is_running):
             try:
@@ -206,6 +224,16 @@ def thread_rx_mavproxy():
                     elif msg.get_type() == 'HIL_SENSOR':
                         # Handle HIL_SENSOR message received from AirSim
                         imu_a.update(msg)
+                        # gyro_data = np.array([imu_a.xgyro, -imu_a.ygyro, -imu_a.zgyro])  # Angular velocities (rad/s)
+                        # accel_data = np.array([imu_a.xacc, -imu_a.yacc, -imu_a.zacc])  # Linear accelerations (m/s^2)
+                        # mag_data = np.array([imu_a.xmag, -imu_a.ymag, -imu_a.zmag])     # Magnetometer data (uT)
+                        # ahrs.update(gyro_data, accel_data, mag_data)
+                        # roll, pitch, yaw = ahrs.quaternion.to_euler_angles()
+                        pitch = math.atan2(imu_a.xacc, math.sqrt(imu_a.yacc**2 + imu_a.zacc**2))
+                        roll = math.atan2(-imu_a.yacc, -imu_a.zacc)
+                        print(roll,pitch,0)
+                        with open(data_file_ahrs, 'a') as file:
+                            file.write(f'AHRS: Dunny={0}, Yaw={0}, Pitch={pitch}, Roll={roll}\n')
                         # imu_a.printInfo()
 
                         
@@ -231,7 +259,7 @@ def hb_send():
                     0,
                     mavutil.mavlink.MAV_STATE_ACTIVE,
                 )
-                print("SentHB")
+                #print("SentHB")
                 time.sleep(1)
     except KeyboardInterrupt:
         is_running = False

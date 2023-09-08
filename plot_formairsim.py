@@ -27,8 +27,12 @@ def plot_elements(file_name, element_names):
     plt.show()
 
 # Specify the file name and the elements to plot
-file_name = 'imu_data.txt'  # Replace with your file name
-elements_to_plot = ['XGyro', 'YGyro', 'ZGyro']
+# file_name = 'imu_data.txt'  # Replace with your file name
+# elements_to_plot = ['XGyro', 'YGyro', 'ZGyro']
+
+file_name = 'ahrs_data.txt'  # Replace with your file name
+elements_to_plot = ['Roll', 'Pitch', 'Yaw']
+
 
 # Call the function to plot multiple elements
 plot_elements(file_name, elements_to_plot)
